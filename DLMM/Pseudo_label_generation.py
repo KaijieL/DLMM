@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jun  3 09:11:11 2021
 
-@author: 98669
-"""
 
 import numpy as np
 from scipy.special import softmax
@@ -48,7 +44,7 @@ if audio_compute == 1:
     audio_clc = []
     audio_plist_all = []
     audio_cosine_diff = []
-    audio_loss = []
+    audio_output = []
     
      
     d2 = np.load('/hdd/DLMM/code/AVE/savefile/audio_distance.npy',allow_pickle=True) #声音模态的评估信息
@@ -88,7 +84,7 @@ if audio_compute == 1:
             
             audio_filename.append(d2[i][4])
             #audio_loss.append(d2[i][-1])
-            audio_loss.append(output)
+            audio_output.append(output)
             
             # for tt in range(28):
             #     d2[i][2][tt] = abs(d2[i][2][tt]-d2[i][1])         
@@ -124,7 +120,7 @@ if img_compute == 1:
     img_clc = []
     img_plist_all = []
     img_cosine_diff = []
-    img_loss = []
+    img_output = []
     
     
     d2 = np.load('/hdd/DLMM/code/AVE/savefile/img_distance.npy',allow_pickle=True) #图像模态的评估信息  
@@ -161,7 +157,7 @@ if img_compute == 1:
             
             img_filename.append(d2[i][4])
             # img_loss.append(d2[i][-1])
-            img_loss.append(output)
+            img_output.append(output)
             
             
             # gulist = []
@@ -204,10 +200,11 @@ if img_compute == 1:
 
 
 
-###########################图像声音双模态融合
+####################################################################  
+#图像声音双模态融合生成伪标签
 if union_compute == 1:
-    audio_res = sorted(zip(audio_filename,audio_gth,audio_pro,audio_cosine,audio_clc,audio_plist_all,audio_cosine_diff,audio_loss ), key=lambda x: x[0], reverse=True)
-    img_res = sorted(zip(img_filename ,img_gth,img_pro,img_cosine,img_clc,img_plist_all,img_cosine_diff,img_loss), key=lambda x: x[0], reverse=True)
+    audio_res = sorted(zip(audio_filename,audio_gth,audio_pro,audio_cosine,audio_clc,audio_plist_all,audio_cosine_diff,audio_output ), key=lambda x: x[0], reverse=True)
+    img_res = sorted(zip(img_filename ,img_gth,img_pro,img_cosine,img_clc,img_plist_all,img_cosine_diff,img_output), key=lambda x: x[0], reverse=True)
     fusion_pro_gth = []
     fusion_cos_gth=[]
     fusion_diff_gth=[]
@@ -221,18 +218,13 @@ if union_compute == 1:
     union_clc=[]
     confidence_a=[]
     confidence_v=[]
+    img_output_list=[]
+    audio_output_list=[]
     #############
     for i in range(len(img_res)):
         name.append(audio_res[i][0])  #添加名称
-    
-        if audio_res[i][2]>img_res[i][2]:
-            fusion_pro_gth.append(audio_res[i][1])
-            fusion_pro_value.append(audio_res[i][2])
-    
-        else:
-            fusion_pro_gth.append(img_res[i][1])
-            fusion_pro_value.append(img_res[i][2])
-            
+        img_output_list.append(img_res[i][-1])
+        audio_output_list.append(audio_res[i][-1])
         
         
         if audio_res[i][3] > img_res[i][3]:
@@ -251,17 +243,13 @@ if union_compute == 1:
             confidence_a.append(audio_res[i][5][img_res[i][4]])
             confidence_v.append(img_res[i][5][img_res[i][4]])
             
-        
-        if audio_res[i][6] > img_res[i][6]:
-            fusion_diff_gth.append(audio_res[i][1])
-            fusion_diff_value.append(audio_res[i][6])
     
-        else:
-            fusion_diff_gth.append(img_res[i][1])
-            fusion_diff_value.append(img_res[i][6])
             
-    union_all = sorted(zip(confidence_max, union_clc, name,confidence_a,confidence_v,audio_loss,img_loss), key=lambda x: x[0], reverse=True)
+    union_all = sorted(zip(confidence_max, union_clc, name,confidence_a,confidence_v,audio_output_list,img_output_list), key=lambda x: x[0], reverse=True)
     union_retrain = union_all[0 : int(1.0*len(union_all))]
-    np.save('/hdd/DLMM/code/AVE/savefile/union_retrain.npy',union_retrain)  #最终要参与自训练的伪标签信息
+    np.save('/hdd/DLMM/code/AVE/savefile/union_retrain.npy',union_retrain)  #伪标签的信息
+
+
+
 
 
