@@ -243,7 +243,7 @@ if __name__ == "__main__":
         retrain_confidence = []
         for element in union_all:
             retrain_label.append(int(element[1]))    
-            output = element[-2]
+            output = element[-1]
             plist = softmax(output)
             loss = math.log(plist[int(element[1])])
             retrain_imgloss.append(float(loss))       #对模态课程学习排序用
